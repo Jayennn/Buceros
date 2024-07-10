@@ -1,39 +1,58 @@
-import {createCanvas, loadImage, registerFont} from "canvas";
+import { createCanvas, loadImage, registerFont } from "canvas";
 import path from "path";
-import {Client, GuildMember} from "discord.js";
+import { GuildMember } from "discord.js";
 import * as fs from "fs";
 
-const fontPath = path.resolve(__dirname, "../assets/fonts/Poppins-ExtraBold.ttf");
-registerFont(fontPath, { family: 'Poppins', weight: "800", style: "extra-bold" });
+// Register the custom font
+const fontPath = path.resolve(
+  __dirname,
+  "../assets/fonts/Poppins-ExtraBold.ttf",
+);
+registerFont(fontPath, {
+  family: "Poppins",
+  weight: "800",
+  style: "extra-bold",
+});
 
-export async function createBanner(guildMember: GuildMember, client: Client) {
-    try {
-        const canvas = createCanvas(512, 302);
-        const ctx = canvas.getContext('2d');
-        const background = await loadImage(path.join(__dirname, "../assets/banner.jpg"));
+/**
+ * Creates a welcome banner for a new guild member.
+ *
+ * @param {GuildMember} guildMember - The guild member to create the banner for.
+ * @returns {Promise<Buffer>} - A promise that resolves to a buffer containing the image data.
+ */
+export async function createBanner(guildMember: GuildMember): Promise<Buffer> {
+  try {
+    // Create a canvas with the specified width and height
+    const canvas = createCanvas(512, 302);
+    const ctx = canvas.getContext("2d");
 
-        // Draw background image
-        ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
+    // Load the background image
+    const background = await loadImage(
+      path.join(__dirname, "../assets/banner.jpg"),
+    );
 
-        // Draw welcome text with member name
-        let memberName = guildMember.displayName;
-        ctx.font = '50px Poppins';
-        ctx.fillStyle = 'rgb(40, 40, 40)';
-        if(memberName.length > 4) memberName = memberName.substring(0, 5).toUpperCase();
-        ctx.fillText(`WELCOME \n${memberName}`, 10, 100);
+    // Draw the background image on the canvas
+    ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
 
+    // Set the member name and truncate if it's too long
+    let memberName = guildMember.displayName;
+    ctx.font = "35px Poppins";
+    ctx.fillStyle = "rgb(40, 40, 40)";
+    if (memberName.length > 15) memberName = memberName.slice(0, 15) + "...";
 
-        // Save canvas as buffer
-        const buffer = canvas.toBuffer('image/png');
+    // Draw the welcome text on the canvas
+    ctx.fillText(`WELCOME \n${memberName}`, 20, 150);
 
-        // Optionally, save the buffer to a file
-        fs.writeFileSync('banner.png', buffer);
+    // Convert the canvas to a buffer
+    const buffer = canvas.toBuffer("image/png");
 
-        return buffer;
-    } catch (error) {
-        console.error('Error creating banner:', error);
-        throw error; // Propagate the error for handling elsewhere
-    }
+    // Save the buffer as a PNG file
+    fs.writeFileSync("banner.png", buffer);
+
+    // Return the buffer
+    return buffer;
+  } catch (error) {
+    console.error("Error creating banner:", error);
+    throw error;
+  }
 }
-
-
